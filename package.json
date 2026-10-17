@@ -68,7 +68,8 @@
       "src/app/location.tsx",
       "src/lib/entitlements.ts",
       "src/lib/errors.ts",
-      "src/components/FeatureGate.tsx"
+      "src/components/FeatureGate.tsx",
+      "supabase/functions/_shared/idCheck.ts"
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",
