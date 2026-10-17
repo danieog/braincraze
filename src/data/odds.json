@@ -1,0 +1,53 @@
+[
+  {
+    "id": "temple-grandin",
+    "name": "Temple Grandin",
+    "tag": "Thinking differently",
+    "roles": "Animal scientist · Author · Autism advocate",
+    "color": "#B8A4E3",
+    "exploreLabel": "Explore her story",
+    "bio": "Temple Grandin is an autistic scientist and a professor at Colorado State University.",
+    "challenge": "Grandin has described sensory sensitivities and the challenges she faced navigating a world not built for autistic people.",
+    "madePossible": "She used her visual thinking to design livestock-handling systems and became a widely known voice on autism.",
+    "takeaway": "There is more than one way to think, learn, and contribute.",
+    "sourceLabel": "templegrandin.com",
+    "sources": [
+      { "label": "Temple Grandin official site", "url": "https://www.templegrandin.com/" }
+    ],
+    "verified": false
+  },
+  {
+    "id": "simone-biles",
+    "name": "Simone Biles",
+    "tag": "Strength and well-being",
+    "roles": "Gymnast · Olympic champion",
+    "color": "#FFB7CE",
+    "exploreLabel": "Explore her story",
+    "bio": "Simone Biles is an American gymnast and an Olympic gold medalist in 2016 and 2024.",
+    "challenge": "At the Tokyo Olympics in 2021, Biles experienced the \u201ctwisties,\u201d a loss of spatial awareness, and withdrew from several events.",
+    "madePossible": "She prioritized her health and safety, returned to competition, and won the all-around title again at Paris 2024.",
+    "takeaway": "Protecting your well-being can be an act of strength.",
+    "sourceLabel": "olympics.com",
+    "sources": [
+      { "label": "Olympics.com athlete profile", "url": "https://olympics.com/en/athletes/simone-biles" }
+    ],
+    "verified": false
+  },
+  {
+    "id": "judith-heumann",
+    "name": "Judith Heumann",
+    "tag": "Access and belonging",
+    "roles": "Disability-rights activist · Author",
+    "color": "#A8E6CF",
+    "exploreLabel": "Explore her story",
+    "bio": "Judith Heumann was an American disability-rights leader whose work helped advance access and inclusion.",
+    "challenge": "A wheelchair user after having polio, she faced exclusion from school and was initially denied a teaching license in New York City.",
+    "madePossible": "She helped lead the 1977 Section 504 sit-in, part of the movement that secured federal disability-rights regulations.",
+    "takeaway": "You deserve access and belonging, not an exception.",
+    "sourceLabel": "judithheumann.com",
+    "sources": [
+      { "label": "Judith Heumann official site", "url": "https://judithheumann.com/" }
+    ],
+    "verified": false
+  }
+]
