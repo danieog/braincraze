@@ -1,10 +1,10 @@
 -- BrainCraze: opt-in "nearby students" location feature.
 -- Run once in the Supabase dashboard: SQL Editor > New query > paste > Run.
--- Also turn on: Authentication > Sign In / Providers > "Allow anonymous sign-ins".
+-- Also turn on: Authentication > Sign In / Providers > Email.
 
 create extension if not exists postgis with schema extensions;
 
--- One profile per (anonymous or real) user.
+-- One profile per user.
 create table if not exists public.profiles (
   id             uuid primary key references auth.users (id) on delete cascade,
   display_name   text not null check (char_length(display_name) between 1 and 24),
@@ -110,7 +110,7 @@ as $$
   limit 50;
 $$;
 
--- Only signed-in users (anonymous sign-in counts) may call these.
+-- Only signed-in users may call these.
 revoke all on function public.set_location(double precision, double precision) from public, anon;
 revoke all on function public.stop_sharing() from public, anon;
 revoke all on function public.nearby_users(int) from public, anon;

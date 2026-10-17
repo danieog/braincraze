@@ -3,12 +3,9 @@ import { Text } from "react-native";
 import { canUse } from "../lib/entitlements";
 import { FeatureGate } from "../components/FeatureGate";
 
-it("allows nearby for everyone", () => expect(canUse("nearby", { isAnonymous: true })).toBe(true));
+it("allows nearby for everyone", () => expect(canUse("nearby")).toBe(true));
 
-it("locks verify-id for anonymous users only", () => {
-  expect(canUse("verify-id", { isAnonymous: true })).toBe(false);
-  expect(canUse("verify-id", { isAnonymous: false })).toBe(true);
-});
+it("allows verify-id for everyone", () => expect(canUse("verify-id")).toBe(true));
 
 it("renders children when allowed", async () => {
   await render(

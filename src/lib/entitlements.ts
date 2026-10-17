@@ -1,12 +1,8 @@
 export type Feature = "nearby" | "verify-id";
 
-export type Access = { isAnonymous: boolean };
-
-// Single place to decide who can use a feature.
-// Nearby works for anonymous users. School verification needs a real email account,
-// because the database requires a confirmed email before it starts.
+// Single place to decide who can use a feature. Everyone can for now.
+// Everyone is signed in with an email by the time they get here (see the route guard in app/_layout.tsx).
 // Later: check a paid plan or an ad-supported tier here.
-export function canUse(feature: Feature, access: Access = { isAnonymous: false }): boolean {
-  if (feature === "verify-id") return !access.isAnonymous;
+export function canUse(_feature: Feature): boolean {
   return true;
 }

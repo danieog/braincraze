@@ -4,7 +4,7 @@
 -- and Authentication > Sign In / Providers > Email > "Confirm email".
 --
 -- Trust levels (computed by my_trust_level(), never stored or writable by clients):
---   0 = no confirmed email (includes anonymous users)
+--   0 = no confirmed email
 --   1 = email verified
 --   2 = human verified (set by a trigger when the email is confirmed; this only means something
 --       while CAPTCHA protection is enabled in the dashboard, because signup then requires a Turnstile token)
