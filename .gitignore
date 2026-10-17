@@ -43,3 +43,7 @@ example
 /ios
 /android
 coverage/
+
+# local SSH key pair (never commit)
+braincraze.txt
+braincraze.txt.pub
