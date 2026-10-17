@@ -43,6 +43,13 @@
         {
           "locationWhenInUsePermission": "BrainCraze uses your approximate location only while the app is open, to show students near you. You can turn this off anytime."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "BrainCraze uses a photo of your school ID only to verify you. It is deleted after a person reviews it.",
+          "cameraPermission": "BrainCraze uses the camera to photograph your school ID for verification. The photo is deleted after review."
+        }
       ]
     ],
     "experiments": {
