@@ -37,7 +37,13 @@
       "expo-font",
       "expo-image",
       "expo-status-bar",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "BrainCraze uses your approximate location only while the app is open, to show students near you. You can turn this off anytime."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
