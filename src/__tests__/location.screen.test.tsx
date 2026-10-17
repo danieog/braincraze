@@ -13,7 +13,7 @@ import { canUse } from "../lib/entitlements";
 import LocationScreen from "../app/location";
 
 const m = lib as jest.Mocked<typeof lib>;
-const ready = { status: "ready", userId: "u1" };
+const ready = { status: "ready", userId: "u1", isAnonymous: true, email: null };
 const profile = (over = {}) => ({ id: "u1", display_name: "Bob", share_location: false, ...over });
 
 beforeEach(() => {

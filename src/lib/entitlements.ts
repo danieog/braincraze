@@ -1,7 +1,12 @@
-export type Feature = "nearby";
+export type Feature = "nearby" | "verify-id";
 
-// Single place to decide who can use a feature. Everyone can for now.
-// Later: check login, a paid plan, or an ad-supported tier here.
-export function canUse(_feature: Feature): boolean {
+export type Access = { isAnonymous: boolean };
+
+// Single place to decide who can use a feature.
+// Nearby works for anonymous users. School verification needs a real email account,
+// because the database requires a confirmed email before it starts.
+// Later: check a paid plan or an ad-supported tier here.
+export function canUse(feature: Feature, access: Access = { isAnonymous: false }): boolean {
+  if (feature === "verify-id") return !access.isAnonymous;
   return true;
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { FeatureGate } from "../components/FeatureGate";
 import { errorText } from "../lib/errors";
 import { listSchools, ROLES, submitId, type Role, type School } from "../lib/idVerification";
 import { useSession } from "../lib/session";
@@ -55,6 +56,7 @@ export default function VerifyIdScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <FeatureGate feature="verify-id">
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title} accessibilityRole="header">
           Verify your school ID
@@ -109,6 +111,7 @@ export default function VerifyIdScreen() {
         )}
         {message && <Text style={styles.message}>{message}</Text>}
       </ScrollView>
+      </FeatureGate>
     </SafeAreaView>
   );
 }
