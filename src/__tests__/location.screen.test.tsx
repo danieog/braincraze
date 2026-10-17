@@ -230,3 +230,47 @@ describe("unmount safety and odd errors", () => {
     expect(m.saveDisplayName).not.toHaveBeenCalled();
   });
 });
+
+describe("remaining branches", () => {
+  it("shows the working spinner while a request is pending", async () => {
+    let finish!: (r: any) => void;
+    m.startSharing.mockReturnValue(new Promise((r) => (finish = r)));
+    await render(<LocationScreen />);
+    await screen.findByDisplayValue("Bob");
+    void press("Turn on nearby");
+    expect(await screen.findByLabelText("Working")).toBeTruthy();
+    await act(async () => finish({ ok: true }));
+    await waitFor(() => expect(screen.queryByLabelText("Working")).toBeNull());
+  });
+
+  it("applies the pressed style", async () => {
+    await render(<LocationScreen />);
+    const button = await screen.findByLabelText("Save name");
+    await fireEvent(button, "responderGrant", {
+      nativeEvent: { touches: [], changedTouches: [], identifier: 1, timestamp: 0 },
+      persist: () => {},
+      currentTarget: { measure: (cb: any) => cb(0, 0, 10, 10, 0, 0) },
+      target: {},
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 200));
+    });
+    expect(JSON.stringify(screen.getByLabelText("Save name").props.style)).toContain("0.75");
+  });
+
+  it("ignores a save press after the session stops being ready", async () => {
+    let live = true;
+    mockUseSession.mockReturnValue({
+      get status() {
+        return live ? "ready" : "loading";
+      },
+      userId: "u1",
+    });
+    await render(<LocationScreen />);
+    const input = await screen.findByDisplayValue("Bob");
+    await fireEvent.changeText(input, "Changed");
+    live = false;
+    await fireEvent.press(screen.getByLabelText("Save name"));
+    expect(m.saveDisplayName).not.toHaveBeenCalled();
+  });
+});

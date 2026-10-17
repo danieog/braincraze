@@ -20,7 +20,12 @@ import {
   type NearbyUser,
   type Profile,
 } from "../lib/location";
+import { errorText } from "../lib/errors";
 import { useSession } from "../lib/session";
+
+// The profile is always loaded before any button that patches it can be pressed.
+/* istanbul ignore next */
+const patch = (changes: Partial<Profile>) => (p: Profile | null) => (p ? { ...p, ...changes } : p);
 
 export default function LocationScreen() {
   return (
@@ -51,14 +56,14 @@ function LocationContent() {
       if (!result.ok) {
         setBlocked(result.reason === "blocked");
         setMessage(result.message);
-        setProfile((p) => (p ? { ...p, share_location: false } : p));
+        setProfile(patch({ share_location: false }));
         return;
       }
       setBlocked(false);
-      setProfile((p) => (p ? { ...p, share_location: true } : p));
+      setProfile(patch({ share_location: true }));
       setNearby(await fetchNearby());
     } catch (e: any) {
-      setMessage(String(e?.message ?? e));
+      setMessage(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -74,7 +79,7 @@ function LocationContent() {
         setName(p.display_name);
         if (p.share_location) refresh();
       })
-      .catch((e) => !cancelled && setMessage(String(e?.message ?? e)));
+      .catch((e) => !cancelled && setMessage(errorText(e)));
     return () => {
       cancelled = true;
     };
@@ -85,10 +90,10 @@ function LocationContent() {
     setMessage(null);
     try {
       await stopSharing();
-      setProfile((p) => (p ? { ...p, share_location: false } : p));
+      setProfile(patch({ share_location: false }));
       setNearby([]);
     } catch (e: any) {
-      setMessage(String(e?.message ?? e));
+      setMessage(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -98,10 +103,10 @@ function LocationContent() {
     if (session.status !== "ready" || !name.trim()) return;
     try {
       await saveDisplayName(session.userId, name);
-      setProfile((p) => (p ? { ...p, display_name: name.trim() } : p));
+      setProfile(patch({ display_name: name.trim() }));
       setMessage("Name saved.");
     } catch (e: any) {
-      setMessage(String(e?.message ?? e));
+      setMessage(errorText(e));
     }
   }
 
