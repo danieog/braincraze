@@ -58,3 +58,7 @@ Join our community of developers creating universal apps.
 ## Expo signup and verification integration
 
 See [the native Expo port and audit](docs/expo-signup-verification-port.md) for the signup improvements, saved review progress, required Supabase migration, test results and deployment limitations. This integrates the flow into `src/`; it does not import a Next.js app under `export/`.
+
+## Independent human verification
+
+See [human verification implementation and deployment](docs/human-verification.md) for the CAPTCHA screen, server-side provider verification, migration 005, tests and rollout requirements. Real provider credentials and live acceptance testing are required before treating this integration as operational.

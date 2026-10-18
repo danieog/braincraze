@@ -1,3 +1,4 @@
+import { HumanGate } from "../components/HumanGate";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -25,15 +26,38 @@ import { useSession } from "../lib/session";
 
 // The profile is always loaded before any button that patches it can be pressed.
 /* istanbul ignore next */
-const patch = (changes: Partial<Profile>) => (p: Profile | null) => (p ? { ...p, ...changes } : p);
+const patch = (changes: Partial<Profile>) => (p: Profile | null) =>
+  p ? { ...p, ...changes } : p;
 
 export default function LocationScreen() {
   return (
     <SafeAreaView style={styles.safe}>
-      <FeatureGate feature="nearby">
-        <LocationContent />
-      </FeatureGate>
+      <HumanGate lockedActions={<StopSharingWhileLocked />}>
+        <FeatureGate feature="nearby">
+          <LocationContent />
+        </FeatureGate>
+      </HumanGate>
     </SafeAreaView>
+  );
+}
+
+function StopSharingWhileLocked() {
+  const [notice, setNotice] = useState("");
+  async function stop() {
+    try {
+      await stopSharing();
+      setNotice("Location sharing stopped.");
+    } catch {
+      setNotice("Unable to stop sharing. Retry or contact the team.");
+    }
+  }
+  return (
+    <View>
+      <Pressable accessibilityRole="button" onPress={stop}>
+        <Text>Stop location sharing</Text>
+      </Pressable>
+      <Text accessibilityLiveRegion="polite">{notice}</Text>
+    </View>
   );
 }
 
@@ -132,9 +156,10 @@ function LocationContent() {
         Students near you
       </Text>
       <Text style={styles.body}>
-        Share your approximate location to see other BrainCraze students within 25 miles. Your
-        position is rounded to about 1 km, other people never see it (only your name and a rough
-        distance), and it is deleted when you turn this off. It is off until you choose to turn it on.
+        Share your approximate location to see other BrainCraze students within
+        25 miles. Your position is rounded to about 1 km, other people never see
+        it (only your name and a rough distance), and it is deleted when you
+        turn this off. It is off until you choose to turn it on.
       </Text>
 
       <View style={styles.card}>
@@ -146,31 +171,63 @@ function LocationContent() {
           maxLength={24}
           accessibilityLabel="Your display name"
         />
-        <Button label="Save name" onPress={saveName} variant="light" disabled={!name.trim()} />
+        <Button
+          label="Save name"
+          onPress={saveName}
+          variant="light"
+          disabled={!name.trim()}
+        />
       </View>
 
       {!sharing ? (
-        <Button label="Turn on nearby" onPress={refresh} disabled={busy || !profile} />
+        <Button
+          label="Turn on nearby"
+          onPress={refresh}
+          disabled={busy || !profile}
+        />
       ) : (
         <View style={styles.row}>
-          <Button label="Refresh" onPress={refresh} disabled={busy} variant="light" />
-          <Button label="Turn off" onPress={turnOff} disabled={busy} variant="light" />
+          <Button
+            label="Refresh"
+            onPress={refresh}
+            disabled={busy}
+            variant="light"
+          />
+          <Button
+            label="Turn off"
+            onPress={turnOff}
+            disabled={busy}
+            variant="light"
+          />
         </View>
       )}
 
-      {busy && <ActivityIndicator accessibilityLabel="Working" style={styles.spinner} />}
+      {busy && (
+        <ActivityIndicator
+          accessibilityLabel="Working"
+          style={styles.spinner}
+        />
+      )}
       {message && (
         <Text style={styles.message} accessibilityLiveRegion="polite">
           {message}
         </Text>
       )}
-      {blocked && <Button label="Open settings" onPress={openAppSettings} variant="light" />}
+      {blocked && (
+        <Button
+          label="Open settings"
+          onPress={openAppSettings}
+          variant="light"
+        />
+      )}
 
       {sharing && (
         <View style={styles.card}>
           <Text style={styles.label}>Nearby right now</Text>
           {nearby.length === 0 ? (
-            <Text style={styles.body}>No one nearby yet. Ask a friend to turn this on too.</Text>
+            <Text style={styles.body}>
+              No one nearby yet. Ask a friend to turn this on too.
+            </Text>
           ) : (
             nearby.map((u, i) => (
               <View key={`${u.display_name}-${i}`} style={styles.person}>
@@ -210,15 +267,34 @@ function Button({
         disabled && styles.disabled,
       ]}
     >
-      <Text style={[styles.buttonText, variant === "light" && styles.buttonTextLight]}>{label}</Text>
+      <Text
+        style={[
+          styles.buttonText,
+          variant === "light" && styles.buttonTextLight,
+        ]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#FFF8F0" },
-  content: { padding: 20, gap: 14, maxWidth: 560, width: "100%", alignSelf: "center" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 8 },
+  content: {
+    padding: 20,
+    gap: 14,
+    maxWidth: 560,
+    width: "100%",
+    alignSelf: "center",
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    gap: 8,
+  },
   title: { fontSize: 26, fontWeight: "700", color: "#3B2F5C" },
   body: { fontSize: 16, lineHeight: 22, color: "#4A4458" },
   label: { fontSize: 14, fontWeight: "600", color: "#3B2F5C" },

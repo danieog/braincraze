@@ -13,11 +13,12 @@ export const reviewStatuses = [
 export type ReviewStatus = (typeof reviewStatuses)[number];
 export type VerificationProgress = {
   emailVerified: boolean;
+  humanVerified: boolean;
   schoolVerified: boolean;
   reviewStatus: ReviewStatus | null;
 };
 export type ProgressStep = {
-  key: "account" | "email" | "submission" | "review";
+  key: "account" | "email" | "human" | "submission" | "review";
   state: "complete" | "current" | "locked";
 };
 
@@ -26,8 +27,9 @@ export function progressSteps(
   signedIn: boolean,
 ): ProgressStep[] {
   const email = signedIn && Boolean(progress?.emailVerified);
+  const human = email && Boolean(progress?.humanVerified);
   const submitted =
-    email &&
+    human &&
     ["queued", "processing", "manual_review", "approved"].includes(
       progress?.reviewStatus ?? "",
     );
@@ -38,6 +40,7 @@ export function progressSteps(
   const steps = [
     { key: "account" as const, done: signedIn },
     { key: "email" as const, done: email },
+    { key: "human" as const, done: human },
     { key: "submission" as const, done: submitted },
     { key: "review" as const, done: approved },
   ];
@@ -57,6 +60,7 @@ export async function loadVerificationProgress(): Promise<VerificationProgress> 
     !data ||
     typeof data.email_verified !== "boolean" ||
     typeof data.school_verified !== "boolean" ||
+    typeof data.human_verified !== "boolean" ||
     !(
       data.review_status === null || reviewStatuses.includes(data.review_status)
     )
@@ -67,6 +71,7 @@ export async function loadVerificationProgress(): Promise<VerificationProgress> 
   }
   return {
     emailVerified: data.email_verified,
+    humanVerified: data.human_verified,
     schoolVerified: data.school_verified,
     reviewStatus: data.review_status,
   };

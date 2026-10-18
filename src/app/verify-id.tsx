@@ -1,3 +1,4 @@
+import { HumanGate } from "../components/HumanGate";
 import type { VerificationProgress as SavedProgress } from "../lib/verificationProgress";
 import { VerificationProgress } from "../components/VerificationProgress";
 import { onboardingCopy } from "../content/onboarding";
@@ -95,97 +96,99 @@ export default function VerifyIdScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <FeatureGate feature="verify-id">
-        <ScrollView contentContainerStyle={styles.content}>
-          <Text style={styles.title} accessibilityRole="header">
-            Verify your school ID
-          </Text>
-          <VerificationProgress
-            revision={done ? 1 : 0}
-            onProgress={setSavedProgress}
-          />
-          {done || pending || approved ? (
-            <Text style={styles.body}>
-              {approved
-                ? "Your school affiliation has been approved."
-                : onboardingCopy.pending}{" "}
-              {onboardingCopy.privacy}
+      <HumanGate>
+        <FeatureGate feature="verify-id">
+          <ScrollView contentContainerStyle={styles.content}>
+            <Text style={styles.title} accessibilityRole="header">
+              Verify your school ID
             </Text>
-          ) : (
-            <>
+            <VerificationProgress
+              revision={done ? 1 : 0}
+              onProgress={setSavedProgress}
+            />
+            {done || pending || approved ? (
               <Text style={styles.body}>
-                Upload a clear photo of your whole school ID. A person reviews
-                every submission, and the photo is deleted after their decision
-                when storage cleanup succeeds.
+                {approved
+                  ? "Your school affiliation has been approved."
+                  : onboardingCopy.pending}{" "}
+                {onboardingCopy.privacy}
               </Text>
-              <Text style={styles.label}>School</Text>
-              <View style={styles.row}>
-                {schools.map((s) => (
+            ) : (
+              <>
+                <Text style={styles.body}>
+                  Upload a clear photo of your whole school ID. A person reviews
+                  every submission, and the photo is deleted after their
+                  decision when storage cleanup succeeds.
+                </Text>
+                <Text style={styles.label}>School</Text>
+                <View style={styles.row}>
+                  {schools.map((s) => (
+                    <Chip
+                      key={s.id}
+                      label={s.name}
+                      selected={schoolId === s.id}
+                      onPress={() => setSchoolId(s.id)}
+                    />
+                  ))}
+                </View>
+                <Text style={styles.label}>I am a</Text>
+                <View style={styles.row}>
+                  {ROLES.map((r) => (
+                    <Chip
+                      key={r}
+                      label={r.replace("_", " ")}
+                      selected={role === r}
+                      onPress={() => setRole(r)}
+                    />
+                  ))}
+                </View>
+                <Text style={styles.label}>School email</Text>
+                <TextInput
+                  style={styles.input}
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  accessibilityLabel="School email"
+                />
+                <View style={styles.row}>
                   <Chip
-                    key={s.id}
-                    label={s.name}
-                    selected={schoolId === s.id}
-                    onPress={() => setSchoolId(s.id)}
+                    label="Take photo"
+                    selected={false}
+                    onPress={() => pick(true)}
                   />
-                ))}
-              </View>
-              <Text style={styles.label}>I am a</Text>
-              <View style={styles.row}>
-                {ROLES.map((r) => (
                   <Chip
-                    key={r}
-                    label={r.replace("_", " ")}
-                    selected={role === r}
-                    onPress={() => setRole(r)}
+                    label="Choose photo"
+                    selected={false}
+                    onPress={() => pick(false)}
                   />
-                ))}
-              </View>
-              <Text style={styles.label}>School email</Text>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                accessibilityLabel="School email"
-              />
-              <View style={styles.row}>
-                <Chip
-                  label="Take photo"
-                  selected={false}
-                  onPress={() => pick(true)}
-                />
-                <Chip
-                  label="Choose photo"
-                  selected={false}
-                  onPress={() => pick(false)}
-                />
-              </View>
-              {image && (
-                <Image
-                  source={{ uri: image.uri }}
-                  style={styles.preview}
-                  accessibilityLabel="ID preview"
-                />
-              )}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Submit for review"
-                disabled={busy || !schoolId || !image || !email}
-                onPress={submit}
-                style={[
-                  styles.button,
-                  (busy || !schoolId || !image || !email) && styles.disabled,
-                ]}
-              >
-                <Text style={styles.buttonText}>Submit for review</Text>
-              </Pressable>
-              {busy && <ActivityIndicator accessibilityLabel="Working" />}
-            </>
-          )}
-          {message && <Text style={styles.message}>{message}</Text>}
-        </ScrollView>
-      </FeatureGate>
+                </View>
+                {image && (
+                  <Image
+                    source={{ uri: image.uri }}
+                    style={styles.preview}
+                    accessibilityLabel="ID preview"
+                  />
+                )}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Submit for review"
+                  disabled={busy || !schoolId || !image || !email}
+                  onPress={submit}
+                  style={[
+                    styles.button,
+                    (busy || !schoolId || !image || !email) && styles.disabled,
+                  ]}
+                >
+                  <Text style={styles.buttonText}>Submit for review</Text>
+                </Pressable>
+                {busy && <ActivityIndicator accessibilityLabel="Working" />}
+              </>
+            )}
+            {message && <Text style={styles.message}>{message}</Text>}
+          </ScrollView>
+        </FeatureGate>
+      </HumanGate>
     </SafeAreaView>
   );
 }

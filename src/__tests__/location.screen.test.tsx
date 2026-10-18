@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 
 const mockUseSession = jest.fn();
 jest.mock("../lib/session", () => ({ useSession: () => mockUseSession() }));
@@ -11,10 +17,18 @@ jest.mock("react-native-safe-area-context", () => ({
 import * as lib from "../lib/location";
 import { canUse } from "../lib/entitlements";
 import LocationScreen from "../app/location";
+jest.mock("../components/HumanGate", () => ({
+  HumanGate: ({ children }: { children: React.ReactNode }) => children,
+}));
 
 const m = lib as jest.Mocked<typeof lib>;
 const ready = { status: "ready", userId: "u1", email: "a@b.co" };
-const profile = (over = {}) => ({ id: "u1", display_name: "Bob", share_location: false, ...over });
+const profile = (over = {}) => ({
+  id: "u1",
+  display_name: "Bob",
+  share_location: false,
+  ...over,
+});
 
 beforeEach(() => {
   jest.resetAllMocks();
@@ -61,7 +75,9 @@ it("shows profile load error", async () => {
 
 it("turning on shows nearby people", async () => {
   m.startSharing.mockResolvedValue({ ok: true });
-  m.fetchNearby.mockResolvedValue([{ display_name: "Ann", distance_bucket: "~3 mi" }]);
+  m.fetchNearby.mockResolvedValue([
+    { display_name: "Ann", distance_bucket: "~3 mi" },
+  ]);
   await render(<LocationScreen />);
   await screen.findByDisplayValue("Bob");
   await act(async () => press("Turn on nearby"));
@@ -81,14 +97,20 @@ it("shows empty-nearby message", async () => {
 it("auto-refreshes when profile already shares", async () => {
   m.getOrCreateProfile.mockResolvedValue(profile({ share_location: true }));
   m.startSharing.mockResolvedValue({ ok: true });
-  m.fetchNearby.mockResolvedValue([{ display_name: "Zed", distance_bucket: "~1 mi" }]);
+  m.fetchNearby.mockResolvedValue([
+    { display_name: "Zed", distance_bucket: "~1 mi" },
+  ]);
   await render(<LocationScreen />);
   expect(await screen.findByText("Zed")).toBeTruthy();
   expect(m.startSharing).toHaveBeenCalledTimes(1);
 });
 
 it("blocked permission shows message and Open settings", async () => {
-  m.startSharing.mockResolvedValue({ ok: false, reason: "blocked", message: "Blocked!" });
+  m.startSharing.mockResolvedValue({
+    ok: false,
+    reason: "blocked",
+    message: "Blocked!",
+  });
   await render(<LocationScreen />);
   await screen.findByDisplayValue("Bob");
   await act(async () => press("Turn on nearby"));
@@ -99,7 +121,11 @@ it("blocked permission shows message and Open settings", async () => {
 });
 
 it("denied permission shows message without Open settings", async () => {
-  m.startSharing.mockResolvedValue({ ok: false, reason: "denied", message: "Nope" });
+  m.startSharing.mockResolvedValue({
+    ok: false,
+    reason: "denied",
+    message: "Nope",
+  });
   await render(<LocationScreen />);
   await screen.findByDisplayValue("Bob");
   await act(async () => press("Turn on nearby"));
@@ -118,7 +144,9 @@ it("shows an error when fetchNearby throws (with non-Error value)", async () => 
 
 it("turn off stops sharing and clears nearby", async () => {
   m.startSharing.mockResolvedValue({ ok: true });
-  m.fetchNearby.mockResolvedValue([{ display_name: "Ann", distance_bucket: "~3 mi" }]);
+  m.fetchNearby.mockResolvedValue([
+    { display_name: "Ann", distance_bucket: "~3 mi" },
+  ]);
   m.stopSharing.mockResolvedValue();
   await render(<LocationScreen />);
   await screen.findByDisplayValue("Bob");
@@ -178,7 +206,9 @@ describe("display name", () => {
     await fireEvent.changeText(input, "   ");
     await fireEvent.press(screen.getByLabelText("Save name"));
     expect(m.saveDisplayName).not.toHaveBeenCalled();
-    expect(screen.getByLabelText("Save name").props.accessibilityState.disabled).toBe(true);
+    expect(
+      screen.getByLabelText("Save name").props.accessibilityState.disabled,
+    ).toBe(true);
   });
 
   it("limits the name to 24 characters", async () => {
@@ -247,7 +277,12 @@ describe("remaining branches", () => {
     await render(<LocationScreen />);
     const button = await screen.findByLabelText("Save name");
     await fireEvent(button, "responderGrant", {
-      nativeEvent: { touches: [], changedTouches: [], identifier: 1, timestamp: 0 },
+      nativeEvent: {
+        touches: [],
+        changedTouches: [],
+        identifier: 1,
+        timestamp: 0,
+      },
       persist: () => {},
       currentTarget: { measure: (cb: any) => cb(0, 0, 10, 10, 0, 0) },
       target: {},
@@ -255,7 +290,9 @@ describe("remaining branches", () => {
     await act(async () => {
       await new Promise((r) => setTimeout(r, 200));
     });
-    expect(JSON.stringify(screen.getByLabelText("Save name").props.style)).toContain("0.75");
+    expect(
+      JSON.stringify(screen.getByLabelText("Save name").props.style),
+    ).toContain("0.75");
   });
 
   it("ignores a save press after the session stops being ready", async () => {
