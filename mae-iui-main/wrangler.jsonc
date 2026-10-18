@@ -1,0 +1,9 @@
+{
+  "name": "braincraze",
+  "compatibility_date": "2026-10-17",
+  "assets": {
+    "directory": "./dist",
+    // The web build is a single-page app, so unknown paths like /login serve index.html.
+    "not_found_handling": "single-page-application"
+  }
+}

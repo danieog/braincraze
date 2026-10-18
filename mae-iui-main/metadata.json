@@ -1,0 +1,6 @@
+{
+  "name": "BrainCraze",
+  "description": "Student and faculty community connecting verified academic members and nearby peers with optional school ID verification.",
+  "permissions": [],
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Nunito', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+  h1, h2, h3, .font-fredoka {
+    font-family: 'Fredoka', 'Nunito', cursive, sans-serif;
+  }
+}
+
+/* Stop badge spinning: smooth gentle glow pulse without rotation */
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 0.8; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+@keyframes float-buddy {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes jog-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes leg-cycle-l {
+  0%, 100% {
+    transform: rotate(-26deg);
+  }
+  50% {
+    transform: rotate(26deg);
+  }
+}
+
+@keyframes leg-cycle-r {
+  0%, 100% {
+    transform: rotate(26deg);
+  }
+  50% {
+    transform: rotate(-26deg);
+  }
+}
+
+@keyframes arm-cycle-l {
+  0%, 100% {
+    transform: rotate(28deg);
+  }
+  50% {
+    transform: rotate(-28deg);
+  }
+}
+
+@keyframes arm-cycle-r {
+  0%, 100% {
+    transform: rotate(-28deg);
+  }
+  50% {
+    transform: rotate(28deg);
+  }
+}
+
+@keyframes freeze-pulse {
+  0%, 100% {
+    box-shadow: 0 0 25px rgba(225, 29, 72, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(225, 29, 72, 0.7);
+  }
+}
+
+@keyframes rainbow-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-float-buddy {
+  animation: float-buddy 3s ease-in-out infinite;
+}
+
+.animate-jog {
+  animation: jog-bounce 0.28s ease-in-out infinite;
+}
+
+.animate-freeze-pulse {
+  animation: freeze-pulse 1.8s infinite;
+}
+
+.animate-rainbow {
+  background-size: 200% 200%;
+  animation: rainbow-shift 8s ease infinite;
+}
+
+.animate-twinkle {
+  animation: sparkle-twinkle 2.5s infinite ease-in-out;
+}
