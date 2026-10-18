@@ -47,3 +47,6 @@ coverage/
 # local SSH key pair (never commit)
 braincraze.txt
 braincraze.txt.pub
+
+# Wrangler local state
+.wrangler/
