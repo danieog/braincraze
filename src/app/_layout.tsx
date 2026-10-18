@@ -43,6 +43,7 @@ function Routes() {
         <Stack.Screen name="verify-email" />
       </Stack.Protected>
       <Stack.Protected guard={confirmed}>
+        <Stack.Screen name="human-verification" />
         <Stack.Screen name="location" />
         <Stack.Screen name="verify-id" />
         <Stack.Screen name="admin-review" />

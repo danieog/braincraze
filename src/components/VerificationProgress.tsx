@@ -87,9 +87,11 @@ function ProgressForUser({
                 href={
                   step.key === "account"
                     ? "/signup"
-                    : step.key === "email"
-                      ? "/verify-email"
-                      : "/verify-id"
+                    : step.key === "human"
+                      ? "/human-verification"
+                      : step.key === "email"
+                        ? "/verify-email"
+                        : "/verify-id"
                 }
               >
                 Continue

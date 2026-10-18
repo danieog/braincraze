@@ -29,6 +29,7 @@ beforeEach(() => {
 it("restores pending review after remount and distinguishes reupload and approval on refresh", async () => {
   load.mockResolvedValueOnce({
     emailVerified: true,
+    humanVerified: true,
     schoolVerified: false,
     reviewStatus: "manual_review",
   });
@@ -38,6 +39,7 @@ it("restores pending review after remount and distinguishes reupload and approva
   );
   load.mockResolvedValueOnce({
     emailVerified: true,
+    humanVerified: true,
     schoolVerified: false,
     reviewStatus: "needs_reupload",
   });
@@ -54,6 +56,7 @@ it("restores pending review after remount and distinguishes reupload and approva
   ).toBeTruthy();
   load.mockResolvedValueOnce({
     emailVerified: true,
+    humanVerified: true,
     schoolVerified: true,
     reviewStatus: "approved",
   });
@@ -79,6 +82,7 @@ it("displays a failed status request and permits retry without inventing approva
   ).toBeNull();
   load.mockResolvedValueOnce({
     emailVerified: true,
+    humanVerified: true,
     schoolVerified: false,
     reviewStatus: null,
   });

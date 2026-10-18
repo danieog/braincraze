@@ -4,6 +4,7 @@ export const onboardingCopy = {
   steps: {
     account: "Create account",
     email: "Verify email",
+    human: "Verify you are human",
     school: "School verified by your school email",
     submission: "Submit school ID",
     review: "School affiliation review",
