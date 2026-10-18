@@ -15,19 +15,34 @@ function Routes() {
   const session = useSession();
   if (session.status === "loading" || session.status === "error") {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
-        {session.status === "loading" ? <ActivityIndicator /> : <Text>{session.message}</Text>}
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24,
+        }}
+      >
+        {session.status === "loading" ? (
+          <ActivityIndicator />
+        ) : (
+          <Text>{session.message}</Text>
+        )}
       </View>
     );
   }
   const signedIn = session.status === "ready";
+  const confirmed = session.status === "ready" && session.emailVerified;
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="signup" />
         <Stack.Screen name="login" />
       </Stack.Protected>
-      <Stack.Protected guard={signedIn}>
+      <Stack.Protected guard={!confirmed}>
+        <Stack.Screen name="verify-email" />
+      </Stack.Protected>
+      <Stack.Protected guard={confirmed}>
         <Stack.Screen name="location" />
         <Stack.Screen name="verify-id" />
         <Stack.Screen name="admin-review" />

@@ -1,8 +1,15 @@
 import { supabase } from "./supabase";
 
 export type School = { id: string; name: string };
-export type Role = "student" | "faculty" | "teaching_assistant" | "tutor" | "staff";
-export const ROLES: Role[] = ["student", "faculty", "teaching_assistant", "tutor", "staff"];
+export type Role =
+  "student" | "faculty" | "teaching_assistant" | "tutor" | "staff";
+export const ROLES: Role[] = [
+  "student",
+  "faculty",
+  "teaching_assistant",
+  "tutor",
+  "staff",
+];
 
 export type QueueItem = {
   request_id: string;
@@ -18,7 +25,10 @@ export type QueueItem = {
 };
 
 export async function listSchools(): Promise<School[]> {
-  const { data, error } = await supabase.from("schools").select("id, name").order("name");
+  const { data, error } = await supabase
+    .from("schools")
+    .select("id, name")
+    .order("name");
   if (error) throw error;
   return data ?? [];
 }
@@ -31,28 +41,46 @@ export async function submitId(args: {
   schoolId: string;
   schoolEmail: string;
   image: { uri: string; mimeType?: string | null };
-}): Promise<string> {
-  const { data: requestId, error } = await supabase.rpc("start_school_verification", {
-    p_role: args.role,
-    p_school_id: args.schoolId,
-    p_school_email: args.schoolEmail,
-    p_method: "id_upload",
-  });
+}): Promise<{ requestId: string; checkInvocationFailed: boolean }> {
+  const { data: requestId, error } = await supabase.rpc(
+    "start_school_verification",
+    {
+      p_role: args.role,
+      p_school_id: args.schoolId,
+      p_school_email: args.schoolEmail,
+      p_method: "id_upload",
+    },
+  );
   if (error) throw error;
 
-  const contentType = args.image.mimeType === "image/png" ? "image/png" : "image/jpeg";
+  const contentType =
+    args.image.mimeType === "image/png" ? "image/png" : "image/jpeg";
   const path = `${args.userId}/${requestId}.${contentType === "image/png" ? "png" : "jpg"}`;
   const blob = await (await fetch(args.image.uri)).blob();
-  const upload = await supabase.storage.from("id-documents").upload(path, blob, { contentType, upsert: true });
+  const upload = await supabase.storage
+    .from("id-documents")
+    .upload(path, blob, { contentType, upsert: true });
   if (upload.error) throw upload.error;
 
-  const queued = await supabase.rpc("record_id_upload", { p_request: requestId, p_path: path });
+  const queued = await supabase.rpc("record_id_upload", {
+    p_request: requestId,
+    p_path: path,
+  });
   if (queued.error) throw queued.error;
 
   // Fire the check. If it fails, the request stays queued and an admin can still review it by hand.
-  const check = await supabase.functions.invoke("verify-id", { body: { request_id: requestId } });
-  if (check.error) throw check.error;
-  return requestId as string;
+  try {
+    const check = await supabase.functions.invoke("verify-id", {
+      body: { request_id: requestId },
+    });
+    return {
+      requestId: requestId as string,
+      checkInvocationFailed: Boolean(check.error),
+    };
+  } catch {
+    // The upload is already queued. Report the check failure without asking for a duplicate upload.
+    return { requestId: requestId as string, checkInvocationFailed: true };
+  }
 }
 
 export async function fetchQueue(): Promise<QueueItem[]> {
@@ -62,13 +90,19 @@ export async function fetchQueue(): Promise<QueueItem[]> {
 }
 
 export async function imageUrl(path: string): Promise<string> {
-  const { data, error } = await supabase.storage.from("id-documents").createSignedUrl(path, 300);
+  const { data, error } = await supabase.storage
+    .from("id-documents")
+    .createSignedUrl(path, 300);
   if (error) throw error;
   return data.signedUrl;
 }
 
 // Records the human decision, then deletes the uploaded image and clears its path.
-export async function decide(requestId: string, decision: "approved" | "rejected", note?: string) {
+export async function decide(
+  requestId: string,
+  decision: "approved" | "rejected",
+  note?: string,
+) {
   const { data: path, error } = await supabase.rpc("admin_decide", {
     p_request: requestId,
     p_decision: decision,
@@ -91,8 +125,12 @@ async function deleteImage(requestId: string, path: string | null) {
   if (!path) return;
   const removed = await supabase.storage.from("id-documents").remove([path]);
   if (removed.error) {
-    throw new Error(`Decision saved, but the image could not be deleted (${path}): ${removed.error.message}`);
+    throw new Error(
+      `Decision saved, but the image could not be deleted (${path}): ${removed.error.message}`,
+    );
   }
-  const { error } = await supabase.rpc("clear_id_path", { p_request: requestId });
+  const { error } = await supabase.rpc("clear_id_path", {
+    p_request: requestId,
+  });
   if (error) throw error;
 }
