@@ -1,80 +1,186 @@
-import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+} from "react-native";
 import { Link } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { logIn, signUp } from "../lib/auth";
 import { errorText } from "../lib/errors";
+import { passwordStrength, signupError } from "../lib/registration";
+import { VerificationProgress } from "./VerificationProgress";
 
-// Shared by the sign up and log in pages. Both use email and password only.
 export function AuthForm({ mode }: { mode: "signup" | "login" }) {
   const isSignup = mode === "signup";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+  const submitting = useRef(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function submit() {
-    setBusy(true);
+    if (submitting.current) return;
+    setError(null);
     setMessage(null);
+    const invalid = isSignup
+      ? signupError(email, password, confirmation)
+      : !email.trim() || !password
+        ? "Enter your email and password."
+        : null;
+    if (invalid) {
+      setError(invalid);
+      return;
+    }
+    submitting.current = true;
+    setBusy(true);
     try {
       if (isSignup) {
         await signUp(email.trim(), password);
-        setMessage("Check your email and tap the confirmation link to finish signing up. Then log in.");
+        setPassword("");
+        setConfirmation("");
+        setMessage(
+          "Check your email and tap the confirmation link. Then log in to resume verification. Creating an account does not approve your school affiliation.",
+        );
       } else {
         await logIn(email.trim(), password);
       }
     } catch (e) {
-      setMessage(errorText(e));
+      setError(errorText(e));
     } finally {
+      submitting.current = false;
       setBusy(false);
     }
   }
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.content}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.content}
+      >
         <Link href="/" style={styles.link}>
           Back
         </Link>
         <Text style={styles.title} accessibilityRole="header">
           {isSignup ? "Create your account" : "Log in"}
         </Text>
+        {isSignup && <VerificationProgress />}
+        <Text>Email</Text>
         <TextInput
           style={styles.input}
+          accessibilityLabel="Email"
           placeholder="Email"
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
+          maxLength={254}
+          editable={!busy}
           value={email}
           onChangeText={setEmail}
         />
+        <Text>Password</Text>
         <TextInput
           style={styles.input}
+          accessibilityLabel="Password"
           placeholder="Password"
-          secureTextEntry
+          secureTextEntry={!showPassword}
           autoCapitalize="none"
           autoComplete={isSignup ? "new-password" : "current-password"}
+          editable={!busy}
+          maxLength={128}
           value={password}
           onChangeText={setPassword}
         />
-        <Pressable style={styles.button} onPress={submit} disabled={busy || !email || !password}>
-          {busy ? <ActivityIndicator /> : <Text style={styles.buttonText}>{isSignup ? "Sign up" : "Log in"}</Text>}
+        {isSignup && (
+          <>
+            <Text accessibilityLiveRegion="polite">
+              {passwordStrength(password)}
+            </Text>
+            <Text>Confirm password</Text>
+            <TextInput
+              style={styles.input}
+              accessibilityLabel="Confirm password"
+              placeholder="Confirm password"
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoComplete="new-password"
+              editable={!busy}
+              maxLength={128}
+              value={confirmation}
+              onChangeText={setConfirmation}
+            />
+          </>
+        )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+          onPress={() => setShowPassword(!showPassword)}
+        >
+          <Text>{showPassword ? "Hide password" : "Show password"}</Text>
         </Pressable>
-        {message && <Text>{message}</Text>}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={isSignup ? "Sign up" : "Log in"}
+          style={styles.button}
+          onPress={submit}
+          disabled={busy || !email || !password || (isSignup && !confirmation)}
+          accessibilityState={{
+            disabled:
+              busy || !email || !password || (isSignup && !confirmation),
+          }}
+        >
+          {busy ? (
+            <ActivityIndicator accessibilityLabel="Submitting" />
+          ) : (
+            <Text style={styles.buttonText}>
+              {isSignup ? "Sign up" : "Log in"}
+            </Text>
+          )}
+        </Pressable>
+        {error && <Text accessibilityRole="alert">{error}</Text>}
+        {message && <Text accessibilityLiveRegion="polite">{message}</Text>}
+        <Link href="/verify-email" style={styles.link}>
+          Need another confirmation email?
+        </Link>
         <Link href={isSignup ? "/login" : "/signup"} style={styles.link}>
           {isSignup ? "Have an account? Log in" : "New here? Sign up"}
         </Link>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { flex: 1, justifyContent: "center", padding: 24, gap: 12, width: "100%", maxWidth: 440, alignSelf: "center" },
+  content: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 24,
+    gap: 12,
+    width: "100%",
+    maxWidth: 440,
+    alignSelf: "center",
+  },
   title: { fontSize: 24, fontWeight: "700" },
-  input: { borderWidth: 1, borderColor: "#999", borderRadius: 8, padding: 12, fontSize: 16 },
-  button: { backgroundColor: "#222", borderRadius: 8, padding: 14, alignItems: "center" },
+  input: {
+    borderWidth: 1,
+    borderColor: "#777",
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: "#222",
+    borderRadius: 8,
+    padding: 14,
+    alignItems: "center",
+  },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   link: { fontSize: 15, textAlign: "center", textDecorationLine: "underline" },
 });

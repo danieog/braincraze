@@ -5,7 +5,11 @@ const siteUrl = process.env.EXPO_PUBLIC_SITE_URL || "https://braincraze.study";
 
 // Creates an email account. Supabase sends a confirmation email; the account counts as verified once it is confirmed.
 export async function signUp(email: string, password: string): Promise<void> {
-  const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: siteUrl } });
+  const { error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password,
+    options: { emailRedirectTo: siteUrl },
+  });
   if (error) throw error;
 }
 
@@ -16,5 +20,15 @@ export async function logIn(email: string, password: string): Promise<void> {
 
 export async function logOut(): Promise<void> {
   const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+}
+
+// Supabase enforces confirmation and resend limits; this does not grant verification.
+export async function resendConfirmation(email: string): Promise<void> {
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: email.trim(),
+    options: { emailRedirectTo: siteUrl },
+  });
   if (error) throw error;
 }
