@@ -95,3 +95,20 @@ it("does not request private progress for signed-out visitors", async () => {
   expect(load).not.toHaveBeenCalled();
   expect(screen.getByText("Create account — Next step")).toBeTruthy();
 });
+it("shows a school-email user as verified with no ID steps", async () => {
+  load.mockResolvedValueOnce({
+    emailVerified: true,
+    schoolVerified: true,
+    reviewStatus: "approved",
+    method: "school_email",
+  });
+  await render(<VerificationProgress />);
+  await waitFor(() =>
+    expect(
+      screen.getByText("School verified by your school email — Completed"),
+    ).toBeTruthy(),
+  );
+  expect(screen.getByText(/No ID is needed/)).toBeTruthy();
+  expect(screen.queryByText(/Submit school ID/)).toBeNull();
+  expect(screen.queryByText(/School affiliation review/)).toBeNull();
+});

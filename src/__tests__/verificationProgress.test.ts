@@ -1,6 +1,7 @@
 import {
   loadVerificationProgress,
   progressSteps,
+  verifiedBySchoolEmail,
   type VerificationProgress,
 } from "../lib/verificationProgress";
 const mockRpc = jest.fn();
@@ -71,8 +72,59 @@ it("uses an owner-selected database RPC without accepting a client-supplied user
     emailVerified: true,
     schoolVerified: false,
     reviewStatus: "manual_review",
+    method: null,
   });
   expect(mockRpc).toHaveBeenCalledWith("my_verification_progress");
+});
+it("skips the ID steps only when a confirmed school email approved the user", () => {
+  const p: VerificationProgress = {
+    emailVerified: true,
+    schoolVerified: true,
+    reviewStatus: "approved",
+    method: "school_email",
+  };
+  expect(progressSteps(p, true)).toEqual([
+    { key: "account", state: "complete" },
+    { key: "email", state: "complete" },
+    { key: "school", state: "complete" },
+  ]);
+  expect(verifiedBySchoolEmail(p)).toBe(true);
+  // Each missing piece falls back to the normal four-step flow.
+  for (const bad of [
+    { ...p, emailVerified: false },
+    { ...p, schoolVerified: false },
+    { ...p, reviewStatus: "queued" as const },
+    { ...p, method: "id_upload" as const },
+    { ...p, method: null },
+  ]) {
+    expect(verifiedBySchoolEmail(bad)).toBe(false);
+    expect(progressSteps(bad, true)).toHaveLength(4);
+  }
+  expect(progressSteps(p, false)).toHaveLength(4);
+});
+it("accepts a school_email method and rejects an unknown one", async () => {
+  mockRpc.mockResolvedValueOnce({
+    data: {
+      email_verified: true,
+      school_verified: true,
+      review_status: "approved",
+      method: "school_email",
+    },
+    error: null,
+  });
+  await expect(loadVerificationProgress()).resolves.toMatchObject({
+    method: "school_email",
+  });
+  mockRpc.mockResolvedValueOnce({
+    data: {
+      email_verified: true,
+      school_verified: true,
+      review_status: "approved",
+      method: "made_up",
+    },
+    error: null,
+  });
+  await expect(loadVerificationProgress()).rejects.toThrow(/validated/);
 });
 it("fails closed on missing migration, unknown states and forged boolean strings", async () => {
   mockRpc.mockResolvedValueOnce({

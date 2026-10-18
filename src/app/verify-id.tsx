@@ -9,7 +9,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -30,7 +29,6 @@ export default function VerifyIdScreen() {
   const [schools, setSchools] = useState<School[]>([]);
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [role, setRole] = useState<Role>("student");
-  const [email, setEmail] = useState("");
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -78,7 +76,6 @@ export default function VerifyIdScreen() {
         userId: session.userId,
         role,
         schoolId,
-        schoolEmail: email,
         image,
       });
       if (result.checkInvocationFailed)
@@ -140,15 +137,6 @@ export default function VerifyIdScreen() {
                   />
                 ))}
               </View>
-              <Text style={styles.label}>School email</Text>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                accessibilityLabel="School email"
-              />
               <View style={styles.row}>
                 <Chip
                   label="Take photo"
@@ -171,11 +159,11 @@ export default function VerifyIdScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Submit for review"
-                disabled={busy || !schoolId || !image || !email}
+                disabled={busy || !schoolId || !image}
                 onPress={submit}
                 style={[
                   styles.button,
-                  (busy || !schoolId || !image || !email) && styles.disabled,
+                  (busy || !schoolId || !image) && styles.disabled,
                 ]}
               >
                 <Text style={styles.buttonText}>Submit for review</Text>

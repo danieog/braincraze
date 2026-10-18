@@ -11,6 +11,7 @@ import { useSession } from "../lib/session";
 import {
   loadVerificationProgress,
   progressSteps,
+  verifiedBySchoolEmail,
   type VerificationProgress as Progress,
 } from "../lib/verificationProgress";
 import { errorText } from "../lib/errors";
@@ -81,7 +82,7 @@ function ProgressForUser({
             <Text>
               {copy.steps[step.key]} — {copy.states[step.state]}
             </Text>
-            {step.state === "current" && step.key !== "review" && (
+            {step.state === "current" && step.key !== "review" && step.key !== "school" && (
               <Link
                 href={
                   step.key === "account"
@@ -102,6 +103,7 @@ function ProgressForUser({
           <Text>Refresh verification progress</Text>
         </Pressable>
       )}
+      {verifiedBySchoolEmail(progress) && <Text>{copy.schoolEmail}</Text>}
       {progress?.emailVerified &&
         ["queued", "processing", "manual_review"].includes(status ?? "") && (
           <Text>{copy.pending}</Text>

@@ -46,7 +46,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
         setPassword("");
         setConfirmation("");
         setMessage(
-          "Check your email and tap the confirmation link. Then log in to resume verification. Creating an account does not approve your school affiliation.",
+          "Check your email and tap the confirmation link, then log in. If you used your school email, confirming it verifies you as a student. If you used a personal email, you will submit your school ID next. Creating an account does not approve your school affiliation.",
         );
       } else {
         await logIn(email.trim(), password);
@@ -72,6 +72,12 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
           {isSignup ? "Create your account" : "Log in"}
         </Text>
         {isSignup && <VerificationProgress />}
+        {isSignup && (
+          <Text>
+            Use your school email to be verified automatically, or a personal
+            email and then submit your school ID.
+          </Text>
+        )}
         <Text>Email</Text>
         <TextInput
           style={styles.input}
