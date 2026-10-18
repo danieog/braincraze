@@ -22,61 +22,41 @@ export type VerificationProgress = {
   humanVerified: boolean;
   schoolVerified: boolean;
   reviewStatus: ReviewStatus | null;
-  // How the latest request was made. Absent or null before migration 005 or before any request exists.
+  // How the latest request was made. Null before any request exists.
   method?: VerificationMethod | null;
 };
+// "optional" steps can be skipped; nothing in the app is locked behind them.
 export type ProgressStep = {
-  key: "account" | "email" | "school" | "human" | "submission" | "review";
-  state: "complete" | "current" | "locked";
+  key: "account" | "human" | "submission" | "review";
+  state: "complete" | "current" | "optional" | "locked";
 };
-
-// A school-email signup is verified by confirming the email, so the ID steps do not apply to it.
-export function verifiedBySchoolEmail(
-  progress: VerificationProgress | null,
-): boolean {
-  return Boolean(
-    progress?.emailVerified &&
-      progress.schoolVerified &&
-      progress.reviewStatus === "approved" &&
-      progress.method === "school_email",
-  );
-}
 
 export function progressSteps(
   progress: VerificationProgress | null,
   signedIn: boolean,
 ): ProgressStep[] {
-  const email = signedIn && Boolean(progress?.emailVerified);
-  const human = email && Boolean(progress?.humanVerified);
-  if (signedIn && verifiedBySchoolEmail(progress)) {
+  if (!signedIn) {
     return [
-      { key: "account", state: "complete" },
-      { key: "email", state: "complete" },
-      { key: "school", state: "complete" },
+      { key: "account", state: "current" },
+      { key: "human", state: "locked" },
+      { key: "submission", state: "locked" },
+      { key: "review", state: "locked" },
     ];
   }
-  const submitted =
-    human &&
-    ["queued", "processing", "manual_review", "approved"].includes(
-      progress?.reviewStatus ?? "",
-    );
-  const approved =
-    submitted &&
-    progress?.reviewStatus === "approved" &&
-    Boolean(progress.schoolVerified);
-  const steps = [
-    { key: "account" as const, done: signedIn },
-    { key: "email" as const, done: email },
-    { key: "human" as const, done: human },
-    { key: "submission" as const, done: submitted },
-    { key: "review" as const, done: approved },
+  const status = progress?.reviewStatus ?? "";
+  const submitted = ["queued", "processing", "manual_review", "approved"].includes(status);
+  // Both an approved request and the saved affiliation are required; neither alone counts.
+  const approved = status === "approved" && Boolean(progress?.schoolVerified);
+  const needsEvidence = ["awaiting_upload", "needs_reupload", "rejected"].includes(status);
+  return [
+    { key: "account", state: "complete" },
+    { key: "human", state: progress?.humanVerified ? "complete" : "optional" },
+    {
+      key: "submission",
+      state: submitted ? "complete" : needsEvidence ? "current" : "optional",
+    },
+    { key: "review", state: approved ? "complete" : submitted ? "current" : "optional" },
   ];
-  let locked = false;
-  return steps.map(({ key, done }) => {
-    const state = locked ? "locked" : done ? "complete" : "current";
-    if (!done) locked = true;
-    return { key, state };
-  });
 }
 
 // No user ID parameter: the database chooses auth.uid(), not a client-supplied owner.
@@ -91,7 +71,6 @@ export async function loadVerificationProgress(): Promise<VerificationProgress> 
     !(
       data.review_status === null || reviewStatuses.includes(data.review_status)
     ) ||
-    // Before migration 005 the RPC has no method field; treat that as unknown, not as an error.
     !(
       data.method === undefined ||
       data.method === null ||

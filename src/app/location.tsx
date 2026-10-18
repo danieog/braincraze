@@ -1,4 +1,3 @@
-import { HumanGate } from "../components/HumanGate";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -32,32 +31,10 @@ const patch = (changes: Partial<Profile>) => (p: Profile | null) =>
 export default function LocationScreen() {
   return (
     <SafeAreaView style={styles.safe}>
-      <HumanGate lockedActions={<StopSharingWhileLocked />}>
-        <FeatureGate feature="nearby">
-          <LocationContent />
-        </FeatureGate>
-      </HumanGate>
+      <FeatureGate feature="nearby">
+        <LocationContent />
+      </FeatureGate>
     </SafeAreaView>
-  );
-}
-
-function StopSharingWhileLocked() {
-  const [notice, setNotice] = useState("");
-  async function stop() {
-    try {
-      await stopSharing();
-      setNotice("Location sharing stopped.");
-    } catch {
-      setNotice("Unable to stop sharing. Retry or contact the team.");
-    }
-  }
-  return (
-    <View>
-      <Pressable accessibilityRole="button" onPress={stop}>
-        <Text>Stop location sharing</Text>
-      </Pressable>
-      <Text accessibilityLiveRegion="polite">{notice}</Text>
-    </View>
   );
 }
 

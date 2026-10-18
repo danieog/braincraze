@@ -49,11 +49,7 @@ it("restores pending review after remount and distinguishes reupload and approva
   await waitFor(() =>
     expect(screen.getByText(/requested a new image/)).toBeTruthy(),
   );
-  expect(
-    screen.getByText(
-      "School affiliation review — Complete earlier steps first",
-    ),
-  ).toBeTruthy();
+  expect(screen.getByText("School affiliation review — Optional")).toBeTruthy();
   load.mockResolvedValueOnce({
     emailVerified: true,
     humanVerified: true,
@@ -90,7 +86,7 @@ it("displays a failed status request and permits retry without inventing approva
     screen.getByRole("button", { name: "Refresh verification progress" }),
   );
   await waitFor(() =>
-    expect(screen.getByText("Submit school ID — Next step")).toBeTruthy(),
+    expect(screen.getByText("Submit school ID — Optional")).toBeTruthy(),
   );
 });
 it("does not request private progress for signed-out visitors", async () => {
@@ -99,20 +95,20 @@ it("does not request private progress for signed-out visitors", async () => {
   expect(load).not.toHaveBeenCalled();
   expect(screen.getByText("Create account — Next step")).toBeTruthy();
 });
-it("shows a school-email user as verified with no ID steps", async () => {
+it("shows a brand-new account as signed up, with verification optional and nothing locked", async () => {
   load.mockResolvedValueOnce({
-    emailVerified: true,
-    schoolVerified: true,
-    reviewStatus: "approved",
-    method: "school_email",
+    emailVerified: false,
+    humanVerified: false,
+    schoolVerified: false,
+    reviewStatus: null,
   });
   await render(<VerificationProgress />);
   await waitFor(() =>
-    expect(
-      screen.getByText("School verified by your school email — Completed"),
-    ).toBeTruthy(),
+    expect(screen.getByText("Create account — Completed")).toBeTruthy(),
   );
-  expect(screen.getByText(/No ID is needed/)).toBeTruthy();
-  expect(screen.queryByText(/Submit school ID/)).toBeNull();
-  expect(screen.queryByText(/School affiliation review/)).toBeNull();
+  expect(screen.getByText("Verify you are human — Optional")).toBeTruthy();
+  expect(screen.getByText("Submit school ID — Optional")).toBeTruthy();
+  expect(screen.queryByText(/Complete earlier steps first/)).toBeNull();
+  expect(screen.queryByText(/Verify email/)).toBeNull();
+  expect(screen.getByText(/Verification is optional/)).toBeTruthy();
 });

@@ -11,7 +11,6 @@ import { useSession } from "../lib/session";
 import {
   loadVerificationProgress,
   progressSteps,
-  verifiedBySchoolEmail,
   type VerificationProgress as Progress,
 } from "../lib/verificationProgress";
 import { errorText } from "../lib/errors";
@@ -82,16 +81,15 @@ function ProgressForUser({
             <Text>
               {copy.steps[step.key]} — {copy.states[step.state]}
             </Text>
-            {step.state === "current" && step.key !== "review" && step.key !== "school" && (
+            {(step.state === "current" || step.state === "optional") &&
+              step.key !== "review" && (
               <Link
                 href={
                   step.key === "account"
                     ? "/signup"
                     : step.key === "human"
                       ? "/human-verification"
-                      : step.key === "email"
-                        ? "/verify-email"
-                        : "/verify-id"
+                      : "/verify-id"
                 }
               >
                 Continue
@@ -105,11 +103,9 @@ function ProgressForUser({
           <Text>Refresh verification progress</Text>
         </Pressable>
       )}
-      {verifiedBySchoolEmail(progress) && <Text>{copy.schoolEmail}</Text>}
-      {progress?.emailVerified &&
-        ["queued", "processing", "manual_review"].includes(status ?? "") && (
-          <Text>{copy.pending}</Text>
-        )}
+      {["queued", "processing", "manual_review"].includes(status ?? "") && (
+        <Text>{copy.pending}</Text>
+      )}
       {status === "rejected" && <Text>{copy.rejected}</Text>}
       {status === "needs_reupload" && <Text>{copy.reupload}</Text>}
       <Text style={styles.note}>{copy.notice}</Text>

@@ -10,7 +10,8 @@ export default function RootLayout() {
   );
 }
 
-// Signed-out visitors can reach the landing page (index), sign up and log in. Everything else needs an email session.
+// Signed-out visitors can reach the landing page (index), sign up and log in. Any signed-in account can use the app:
+// email, CAPTCHA and school ID verification are optional and only add trust and a badge.
 function Routes() {
   const session = useSession();
   if (session.status === "loading" || session.status === "error") {
@@ -32,17 +33,13 @@ function Routes() {
     );
   }
   const signedIn = session.status === "ready";
-  const confirmed = session.status === "ready" && session.emailVerified;
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="signup" />
         <Stack.Screen name="login" />
       </Stack.Protected>
-      <Stack.Protected guard={!confirmed}>
-        <Stack.Screen name="verify-email" />
-      </Stack.Protected>
-      <Stack.Protected guard={confirmed}>
+      <Stack.Protected guard={signedIn}>
         <Stack.Screen name="human-verification" />
         <Stack.Screen name="location" />
         <Stack.Screen name="verify-id" />

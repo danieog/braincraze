@@ -22,17 +22,22 @@ jest.mock("expo-router", () => {
   };
   return { Stack };
 });
+const signedInRoutes = [
+  "human-verification",
+  "location",
+  "verify-id",
+  "admin-review",
+];
 it.each([
-  [{ status: "signedOut" }, true, false],
-  [{ status: "ready", userId: "u1", emailVerified: false }, true, false],
-  [{ status: "ready", userId: "u1", emailVerified: true }, false, true],
-])(
-  "shows email confirmation and protects ID routes for session %j",
-  async (session, confirmation, verification) => {
-    mockSession.mockReturnValue(session);
-    await render(<RootLayout />);
-    expect(Boolean(screen.queryByText("verify-email"))).toBe(confirmation);
-    expect(Boolean(screen.queryByText("verify-id"))).toBe(verification);
-    expect(Boolean(screen.queryByText("admin-review"))).toBe(verification);
-  },
-);
+  [{ status: "signedOut" }, false],
+  // Email confirmation, CAPTCHA and ID are optional: any signed-in account reaches every screen.
+  [{ status: "ready", userId: "u1", emailVerified: false }, true],
+  [{ status: "ready", userId: "u1", emailVerified: true }, true],
+])("protects app routes only behind sign-in for session %j", async (session, signedIn) => {
+  mockSession.mockReturnValue(session);
+  await render(<RootLayout />);
+  for (const route of signedInRoutes)
+    expect(Boolean(screen.queryByText(route))).toBe(signedIn);
+  expect(Boolean(screen.queryByText("signup"))).toBe(!signedIn);
+  expect(Boolean(screen.queryByText("login"))).toBe(!signedIn);
+});

@@ -17,9 +17,6 @@ jest.mock("react-native-safe-area-context", () => ({
 import * as lib from "../lib/location";
 import { canUse } from "../lib/entitlements";
 import LocationScreen from "../app/location";
-jest.mock("../components/HumanGate", () => ({
-  HumanGate: ({ children }: { children: React.ReactNode }) => children,
-}));
 
 const m = lib as jest.Mocked<typeof lib>;
 const ready = { status: "ready", userId: "u1", email: "a@b.co" };

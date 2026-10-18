@@ -99,8 +99,8 @@ export default function HumanVerificationScreen() {
           Verify you are human
         </Text>
         <Text>
-          Email ownership and human verification are separate. Continue only
-          after the server confirms the CAPTCHA.
+          This check is optional. It shows you are a person and not a script.
+          Continue only after the server confirms the CAPTCHA.
         </Text>
         {busy && (
           <ActivityIndicator accessibilityLabel="Checking verification" />

@@ -42,12 +42,14 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
     setBusy(true);
     try {
       if (isSignup) {
-        await signUp(email.trim(), password);
+        const signedIn = await signUp(email.trim(), password);
         setPassword("");
         setConfirmation("");
-        setMessage(
-          "Check your email and tap the confirmation link, then log in. If you used your school email, confirming it verifies you as a student. If you used a personal email, you will submit your school ID next. Creating an account does not approve your school affiliation.",
-        );
+        // When signedIn is true the session listener moves the user into the app; there is nothing to show.
+        if (!signedIn)
+          setMessage(
+            "Your account was created, but email confirmation is still switched on for this project. Check your email and tap the confirmation link, then log in.",
+          );
       } else {
         await logIn(email.trim(), password);
       }
@@ -74,8 +76,8 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
         {isSignup && <VerificationProgress />}
         {isSignup && (
           <Text>
-            Use your school email to be verified automatically, or a personal
-            email and then submit your school ID.
+            Verification is optional. You can join now and verify your school
+            later with a school ID.
           </Text>
         )}
         <Text>Email</Text>
@@ -152,9 +154,6 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
         </Pressable>
         {error && <Text accessibilityRole="alert">{error}</Text>}
         {message && <Text accessibilityLiveRegion="polite">{message}</Text>}
-        <Link href="/verify-email" style={styles.link}>
-          Need another confirmation email?
-        </Link>
         <Link href={isSignup ? "/login" : "/signup"} style={styles.link}>
           {isSignup ? "Have an account? Log in" : "New here? Sign up"}
         </Link>

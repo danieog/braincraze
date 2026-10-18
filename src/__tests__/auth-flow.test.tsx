@@ -5,13 +5,11 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import { AuthForm } from "../components/AuthForm";
-import VerifyEmailScreen from "../app/verify-email";
-import { logIn, resendConfirmation, signUp } from "../lib/auth";
+import { logIn, signUp } from "../lib/auth";
 
 jest.mock("../lib/auth", () => ({
   signUp: jest.fn(),
   logIn: jest.fn(),
-  resendConfirmation: jest.fn(),
 }));
 jest.mock("../lib/session", () => ({
   useSession: () => ({ status: "signedOut" }),
@@ -32,11 +30,10 @@ jest.mock("expo-router", () => {
 });
 const signup = signUp as jest.Mock;
 const login = logIn as jest.Mock;
-const resend = resendConfirmation as jest.Mock;
 beforeEach(() => jest.resetAllMocks());
 
 it("validates confirmation before contacting Supabase, then clears passwords and explains the next step", async () => {
-  signup.mockResolvedValue(undefined);
+  signup.mockResolvedValue(false);
   await render(<AuthForm mode="signup" />);
   await fireEvent.changeText(
     screen.getByLabelText("Email"),
@@ -68,7 +65,10 @@ it("validates confirmation before contacting Supabase, then clears passwords and
       "A long signup passphrase 12!",
     ),
   );
-  expect(screen.getByText(/Creating an account does not approve/)).toBeTruthy();
+  // signup resolved with no session, so Supabase still requires email confirmation: say so.
+  expect(
+    screen.getByText(/email confirmation is still switched on/),
+  ).toBeTruthy();
   expect(screen.getByLabelText("Password").props.value).toBe("");
   expect(screen.getByLabelText("Confirm password").props.value).toBe("");
 });
@@ -85,18 +85,24 @@ it("shows provider errors and preserves login support for existing passwords", a
   );
   expect(login).toHaveBeenCalledWith("a@example.test", "legacy");
 });
-it("requests a confirmation email without granting verification and enforces the UI cooldown", async () => {
-  resend.mockResolvedValue(undefined);
-  await render(<VerifyEmailScreen />);
+it("says verification is optional and has no confirmation-email detour", async () => {
+  await render(<AuthForm mode="signup" />);
+  expect(screen.getByText(/Verification is optional/)).toBeTruthy();
+  expect(screen.queryByText(/another confirmation email/)).toBeNull();
+});
+it("moves on silently when signup already created a session", async () => {
+  signup.mockResolvedValue(true);
+  await render(<AuthForm mode="signup" />);
   await fireEvent.changeText(screen.getByLabelText("Email"), "a@example.test");
-  await fireEvent.press(
-    screen.getByRole("button", { name: "Resend confirmation email" }),
+  await fireEvent.changeText(
+    screen.getByLabelText("Password"),
+    "A long signup passphrase 12!",
   );
-  await waitFor(() => expect(resend).toHaveBeenCalledWith("a@example.test"));
-  expect(screen.getByText(/If this address can be confirmed/)).toBeTruthy();
-  expect(
-    screen.getByRole("button", { name: "Resend confirmation email" }),
-  ).toBeDisabled();
-  expect(signup).not.toHaveBeenCalled();
-  expect(login).not.toHaveBeenCalled();
+  await fireEvent.changeText(
+    screen.getByLabelText("Confirm password"),
+    "A long signup passphrase 12!",
+  );
+  await fireEvent.press(screen.getByRole("button", { name: "Sign up" }));
+  await waitFor(() => expect(signup).toHaveBeenCalledTimes(1));
+  expect(screen.queryByText(/email confirmation is still switched on/)).toBeNull();
 });

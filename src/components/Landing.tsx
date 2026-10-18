@@ -3,8 +3,8 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const STEPS = [
-  { title: "Create an account", body: "Sign up with your email and confirm it. No other login method." },
-  { title: "Verify your school", body: "Confirm a school email or photograph your school ID. A person reviews ID photos, then the photo is deleted." },
+  { title: "Create an account", body: "Sign up with your email and a password. No ID or email confirmation is needed to join." },
+  { title: "Verify your school (optional)", body: "Photograph your school ID to earn a verified badge. A person reviews ID photos, then the photo is deleted." },
   { title: "Find people nearby", body: "Turn on location sharing to see students near you. It is off until you choose it, and you can stop any time." },
 ];
 
@@ -18,8 +18,8 @@ export function Landing() {
           Meet verified students and teachers near you.
         </Text>
         <Text style={styles.body}>
-          BrainCraze connects people at your school. Everyone you see has confirmed their email, and school-verified
-          members carry a badge showing they are a real student, faculty member, teaching assistant, staff member or tutor.
+          BrainCraze connects people at your school. Anyone can join. Members whose school ID a person has reviewed
+          carry a badge showing they are a real student, faculty member, teaching assistant, staff member or tutor.
         </Text>
 
         <Text style={styles.section} accessibilityRole="header">

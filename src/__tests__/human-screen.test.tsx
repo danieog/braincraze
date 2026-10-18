@@ -5,13 +5,11 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 import HumanVerificationScreen from "../app/human-verification";
-import { HumanGate } from "../components/HumanGate";
 import {
   startHumanVerification,
   submitHumanVerification,
 } from "../lib/humanVerification";
 import { loadVerificationProgress } from "../lib/verificationProgress";
-import { Text } from "react-native";
 jest.mock("../lib/humanVerification", () => ({
   startHumanVerification: jest.fn(),
   submitHumanVerification: jest.fn(),
@@ -175,30 +173,4 @@ it("restores verified status without requiring a new CAPTCHA", async () => {
     expect(screen.getByText("Human verification completed.")).toBeTruthy(),
   );
   expect(start).not.toHaveBeenCalled();
-});
-it.each([false, true])(
-  "ID access requires human verification %s",
-  async (verified) => {
-    load.mockResolvedValue({ ...pending, humanVerified: verified });
-    await render(
-      <HumanGate>
-        <Text>Private ID form</Text>
-      </HumanGate>,
-    );
-    await waitFor(() =>
-      expect(Boolean(screen.queryByText("Private ID form"))).toBe(verified),
-    );
-    if (!verified) expect(screen.getByRole("alert")).toBeTruthy();
-  },
-);
-it("a status outage fails closed while leaving privacy-revocation actions visible", async () => {
-  load.mockRejectedValue(new Error("offline"));
-  await render(
-    <HumanGate lockedActions={<Text>Stop location sharing</Text>}>
-      <Text>Private ID form</Text>
-    </HumanGate>,
-  );
-  await waitFor(() => expect(screen.getByRole("alert")).toBeTruthy());
-  expect(screen.queryByText("Private ID form")).toBeNull();
-  expect(screen.getByText("Stop location sharing")).toBeTruthy();
 });

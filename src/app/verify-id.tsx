@@ -1,4 +1,3 @@
-import { HumanGate } from "../components/HumanGate";
 import type { VerificationProgress as SavedProgress } from "../lib/verificationProgress";
 import { VerificationProgress } from "../components/VerificationProgress";
 import { onboardingCopy } from "../content/onboarding";
@@ -93,8 +92,7 @@ export default function VerifyIdScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <HumanGate>
-        <FeatureGate feature="verify-id">
+      <FeatureGate feature="verify-id">
           <ScrollView contentContainerStyle={styles.content}>
             <Text style={styles.title} accessibilityRole="header">
               Verify your school ID
@@ -113,7 +111,8 @@ export default function VerifyIdScreen() {
             ) : (
               <>
                 <Text style={styles.body}>
-                  Upload a clear photo of your whole school ID. A person reviews
+                  This is optional. Upload a clear photo of your whole school ID
+                  to earn a verified badge. A person reviews
                   every submission, and the photo is deleted after their
                   decision when storage cleanup succeeds.
                 </Text>
@@ -139,15 +138,6 @@ export default function VerifyIdScreen() {
                     />
                   ))}
                 </View>
-                <Text style={styles.label}>School email</Text>
-                <TextInput
-                  style={styles.input}
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  accessibilityLabel="School email"
-                />
                 <View style={styles.row}>
                   <Chip
                     label="Take photo"
@@ -170,11 +160,11 @@ export default function VerifyIdScreen() {
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Submit for review"
-                  disabled={busy || !schoolId || !image || !email}
+                  disabled={busy || !schoolId || !image}
                   onPress={submit}
                   style={[
                     styles.button,
-                    (busy || !schoolId || !image || !email) && styles.disabled,
+                    (busy || !schoolId || !image) && styles.disabled,
                   ]}
                 >
                   <Text style={styles.buttonText}>Submit for review</Text>
@@ -184,8 +174,7 @@ export default function VerifyIdScreen() {
             )}
             {message && <Text style={styles.message}>{message}</Text>}
           </ScrollView>
-        </FeatureGate>
-      </HumanGate>
+      </FeatureGate>
     </SafeAreaView>
   );
 }

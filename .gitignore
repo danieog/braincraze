@@ -50,3 +50,6 @@ braincraze.txt.pub
 
 # Wrangler local state
 .wrangler/
+
+# Supabase CLI local state (project link, version cache)
+supabase/.temp/

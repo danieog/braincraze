@@ -16,13 +16,20 @@ jest.mock("../lib/supabase", () => ({
 }));
 beforeEach(() => jest.resetAllMocks());
 it("delegates signup and confirmation to Supabase without setting verification metadata", async () => {
-  mockAuth.signUp.mockResolvedValue({ error: null });
-  await signUp(" a@example.test ", "A passphrase");
+  mockAuth.signUp.mockResolvedValue({ data: { session: null }, error: null });
+  await expect(signUp(" a@example.test ", "A passphrase")).resolves.toBe(false);
   expect(mockAuth.signUp).toHaveBeenCalledWith({
     email: "a@example.test",
     password: "A passphrase",
     options: { emailRedirectTo: expect.any(String) },
   });
+});
+it("reports a session when Supabase signs the new user in straight away", async () => {
+  mockAuth.signUp.mockResolvedValue({
+    data: { session: { access_token: "fixture" } },
+    error: null,
+  });
+  await expect(signUp("a@example.test", "A passphrase")).resolves.toBe(true);
 });
 it("resends via Supabase and propagates provider errors without inventing successful delivery", async () => {
   mockAuth.resend

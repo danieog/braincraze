@@ -1,9 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react-native";
 import VerifyIdScreen from "../app/verify-id";
 import { loadVerificationProgress } from "../lib/verificationProgress";
-jest.mock("../components/HumanGate", () => ({
-  HumanGate: ({ children }: { children: React.ReactNode }) => children,
-}));
 jest.mock("../lib/session", () => ({
   useSession: () => ({
     status: "ready",

@@ -6,16 +6,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Landing } from "../components/Landing";
 import { logOut } from "../lib/auth";
 import { useSession } from "../lib/session";
-import {
-  verifiedBySchoolEmail,
-  type VerificationProgress as SavedProgress,
-} from "../lib/verificationProgress";
 
 type Page = { label: string; href: Href };
 
+// Every signed-in account can use all of these. Verification is optional.
 const SIGNED_IN: Page[] = [
   { label: "Location", href: "/location" },
-  { label: "Verify ID", href: "/verify-id" },
+  { label: "Verify ID (optional)", href: "/verify-id" },
   { label: "Admin review", href: "/admin-review" },
 ];
 
@@ -23,17 +20,13 @@ const SIGNED_IN: Page[] = [
 export default function Index() {
   const session = useSession();
   const [logOutFailed, setLogOutFailed] = useState(false);
-  const [progress, setProgress] = useState<SavedProgress | null>(null);
   if (session.status !== "ready") return <Landing />;
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.body}>
         <Text style={styles.title}>BrainCraze</Text>
-        <VerificationProgress onProgress={setProgress} />
-        {(session.emailVerified ? SIGNED_IN : [])
-          // School-email users are already verified, so the ID screen is not offered to them.
-          .filter((page) => !(page.href === "/verify-id" && verifiedBySchoolEmail(progress)))
-          .map((page) => (
+        <VerificationProgress />
+        {SIGNED_IN.map((page) => (
           <Link key={page.label} href={page.href} style={styles.button}>
             <Text style={styles.buttonText}>{page.label}</Text>
           </Link>

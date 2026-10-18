@@ -1,7 +1,6 @@
 import {
   loadVerificationProgress,
   progressSteps,
-  verifiedBySchoolEmail,
   type VerificationProgress,
 } from "../lib/verificationProgress";
 const mockRpc = jest.fn();
@@ -9,39 +8,39 @@ jest.mock("../lib/supabase", () => ({
   supabase: { rpc: (...args: unknown[]) => mockRpc(...args) },
 }));
 beforeEach(() => jest.resetAllMocks());
-it("locks all verification steps for visitors and does not trust inconsistent approval flags", () => {
-  expect(progressSteps(null, false).map((s) => s.state)).toEqual([
-    "current",
-    "locked",
-    "locked",
-    "locked",
-    "locked",
+const base: VerificationProgress = {
+  emailVerified: true,
+  humanVerified: false,
+  schoolVerified: false,
+  reviewStatus: null,
+};
+const states = (p: VerificationProgress | null, signedIn = true) =>
+  progressSteps(p, signedIn).map((s) => s.state);
+
+it("locks the optional steps for visitors and offers sign up first", () => {
+  expect(states(null, false)).toEqual(["current", "locked", "locked", "locked"]);
+});
+it("a new account has every verification step optional and nothing locked", () => {
+  expect(states(base)).toEqual(["complete", "optional", "optional", "optional"]);
+  expect(states(null)).toEqual(["complete", "optional", "optional", "optional"]);
+});
+it("does not need a confirmed email for anything", () => {
+  expect(states({ ...base, emailVerified: false })).toEqual(states(base));
+});
+it("the human check is independent of the school ID", () => {
+  expect(states({ ...base, humanVerified: true })).toEqual([
+    "complete",
+    "complete",
+    "optional",
+    "optional",
   ]);
-  expect(
-    progressSteps(
-      {
-        emailVerified: false,
-        humanVerified: false,
-        schoolVerified: true,
-        reviewStatus: "approved",
-      },
-      true,
-    ).map((s) => s.state),
-  ).toEqual(["complete", "current", "locked", "locked", "locked"]);
 });
 it.each(["queued", "processing", "manual_review"] as const)(
   "%s means review pending, never affiliation approved",
   (reviewStatus) => {
-    const p = {
-      emailVerified: true,
-      humanVerified: true,
-      schoolVerified: false,
-      reviewStatus,
-    };
-    expect(progressSteps(p, true).map((s) => s.state)).toEqual([
+    expect(states({ ...base, reviewStatus })).toEqual([
       "complete",
-      "complete",
-      "complete",
+      "optional",
       "complete",
       "current",
     ]);
@@ -50,32 +49,27 @@ it.each(["queued", "processing", "manual_review"] as const)(
 it.each(["rejected", "needs_reupload", "awaiting_upload"] as const)(
   "%s resumes evidence collection",
   (reviewStatus) => {
-    expect(
-      progressSteps(
-        {
-          emailVerified: true,
-          humanVerified: true,
-          schoolVerified: false,
-          reviewStatus,
-        },
-        true,
-      ).map((s) => s.state),
-    ).toEqual(["complete", "complete", "complete", "current", "locked"]);
+    expect(states({ ...base, reviewStatus })).toEqual([
+      "complete",
+      "optional",
+      "current",
+      "optional",
+    ]);
   },
 );
 it("requires both an approved request and saved affiliation for complete status", () => {
-  const p: VerificationProgress = {
-    emailVerified: true,
-    humanVerified: true,
-    schoolVerified: false,
-    reviewStatus: "approved",
-  };
-  expect(progressSteps(p, true)[4].state).toBe("current");
+  const p = { ...base, reviewStatus: "approved" as const };
+  expect(progressSteps(p, true)[3].state).toBe("current");
   expect(
-    progressSteps({ ...p, schoolVerified: true }, true).every(
-      (s) => s.state === "complete",
-    ),
-  ).toBe(true);
+    progressSteps({ ...p, schoolVerified: true }, true)[3].state,
+  ).toBe("complete");
+  // An affiliation flag with no approved request is not trusted either.
+  expect(states({ ...base, schoolVerified: true })).toEqual([
+    "complete",
+    "optional",
+    "optional",
+    "optional",
+  ]);
 });
 it("uses an owner-selected database RPC without accepting a client-supplied user ID", async () => {
   mockRpc.mockResolvedValue({
@@ -96,54 +90,18 @@ it("uses an owner-selected database RPC without accepting a client-supplied user
   });
   expect(mockRpc).toHaveBeenCalledWith("my_verification_progress");
 });
-it("skips the ID steps only when a confirmed school email approved the user", () => {
-  const p: VerificationProgress = {
-    emailVerified: true,
-    schoolVerified: true,
-    reviewStatus: "approved",
-    method: "school_email",
+it("accepts a known method and rejects an unknown one", async () => {
+  const data = {
+    email_verified: true,
+    human_verified: false,
+    school_verified: true,
+    review_status: "approved",
   };
-  expect(progressSteps(p, true)).toEqual([
-    { key: "account", state: "complete" },
-    { key: "email", state: "complete" },
-    { key: "school", state: "complete" },
-  ]);
-  expect(verifiedBySchoolEmail(p)).toBe(true);
-  // Each missing piece falls back to the normal four-step flow.
-  for (const bad of [
-    { ...p, emailVerified: false },
-    { ...p, schoolVerified: false },
-    { ...p, reviewStatus: "queued" as const },
-    { ...p, method: "id_upload" as const },
-    { ...p, method: null },
-  ]) {
-    expect(verifiedBySchoolEmail(bad)).toBe(false);
-    expect(progressSteps(bad, true)).toHaveLength(4);
-  }
-  expect(progressSteps(p, false)).toHaveLength(4);
-});
-it("accepts a school_email method and rejects an unknown one", async () => {
-  mockRpc.mockResolvedValueOnce({
-    data: {
-      email_verified: true,
-      school_verified: true,
-      review_status: "approved",
-      method: "school_email",
-    },
-    error: null,
-  });
+  mockRpc.mockResolvedValueOnce({ data: { ...data, method: "id_upload" }, error: null });
   await expect(loadVerificationProgress()).resolves.toMatchObject({
-    method: "school_email",
+    method: "id_upload",
   });
-  mockRpc.mockResolvedValueOnce({
-    data: {
-      email_verified: true,
-      school_verified: true,
-      review_status: "approved",
-      method: "made_up",
-    },
-    error: null,
-  });
+  mockRpc.mockResolvedValueOnce({ data: { ...data, method: "made_up" }, error: null });
   await expect(loadVerificationProgress()).rejects.toThrow(/validated/);
 });
 it("fails closed on missing migration, unknown states and forged boolean strings", async () => {
@@ -156,6 +114,12 @@ it("fails closed on missing migration, unknown states and forged boolean strings
     null,
     {
       email_verified: "true",
+      human_verified: true,
+      school_verified: true,
+      review_status: "approved",
+    },
+    {
+      email_verified: true,
       school_verified: true,
       review_status: "approved",
     },
@@ -169,18 +133,4 @@ it("fails closed on missing migration, unknown states and forged boolean strings
     mockRpc.mockResolvedValueOnce({ data, error: null });
     await expect(loadVerificationProgress()).rejects.toThrow(/validated/);
   }
-});
-
-it("email confirmation and legacy school approval cannot substitute for human verification", () => {
-  expect(
-    progressSteps(
-      {
-        emailVerified: true,
-        humanVerified: false,
-        schoolVerified: true,
-        reviewStatus: "approved",
-      },
-      true,
-    ).map((s) => s.state),
-  ).toEqual(["complete", "complete", "current", "locked", "locked"]);
 });
