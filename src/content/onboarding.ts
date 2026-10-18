@@ -5,6 +5,7 @@ export const onboardingCopy = {
     account: "Create account",
     email: "Verify email",
     human: "Verify you are human",
+    school: "School verified by your school email",
     submission: "Submit school ID",
     review: "School affiliation review",
   },
@@ -13,6 +14,8 @@ export const onboardingCopy = {
     current: "Next step",
     locked: "Complete earlier steps first",
   },
+  schoolEmail:
+    "Your school email is confirmed, so you are verified as a student. No ID is needed.",
   pending: "Your ID is awaiting a human decision. Submission is not approval.",
   rejected:
     "Your submission was rejected. Submit replacement evidence to request another review.",

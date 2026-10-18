@@ -16,7 +16,7 @@ export type QueueItem = {
   display_name: string | null;
   role: string;
   school_name: string;
-  school_email: string;
+  school_email: string | null;
   status: string;
   id_check_result: "pass" | "review" | null;
   id_check_reason: string | null;
@@ -39,7 +39,7 @@ export async function submitId(args: {
   userId: string;
   role: Role;
   schoolId: string;
-  schoolEmail: string;
+  schoolEmail?: string | null;
   image: { uri: string; mimeType?: string | null };
 }): Promise<{ requestId: string; checkInvocationFailed: boolean }> {
   const { data: requestId, error } = await supabase.rpc(
@@ -47,7 +47,7 @@ export async function submitId(args: {
     {
       p_role: args.role,
       p_school_id: args.schoolId,
-      p_school_email: args.schoolEmail,
+      p_school_email: args.schoolEmail?.trim() || null,
       p_method: "id_upload",
     },
   );
@@ -56,10 +56,13 @@ export async function submitId(args: {
   const contentType =
     args.image.mimeType === "image/png" ? "image/png" : "image/jpeg";
   const path = `${args.userId}/${requestId}.${contentType === "image/png" ? "png" : "jpg"}`;
-  const blob = await (await fetch(args.image.uri)).blob();
+  // Upload raw bytes, not a Blob: for a Blob, storage-js sends the blob's own type (often text/plain from fetch)
+  // and ignores contentType, so the bucket rejects it as an unsupported mime type.
+  const bytes = await (await fetch(args.image.uri)).arrayBuffer();
   const upload = await supabase.storage
     .from("id-documents")
-    .upload(path, blob, { contentType, upsert: true });
+    // No upsert: the path is unique per request, and an upsert would also need select and update policies.
+    .upload(path, bytes, { contentType });
   if (upload.error) throw upload.error;
 
   const queued = await supabase.rpc("record_id_upload", {

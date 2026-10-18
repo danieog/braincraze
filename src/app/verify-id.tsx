@@ -10,7 +10,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -31,7 +30,6 @@ export default function VerifyIdScreen() {
   const [schools, setSchools] = useState<School[]>([]);
   const [schoolId, setSchoolId] = useState<string | null>(null);
   const [role, setRole] = useState<Role>("student");
-  const [email, setEmail] = useState("");
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -79,7 +77,6 @@ export default function VerifyIdScreen() {
         userId: session.userId,
         role,
         schoolId,
-        schoolEmail: email,
         image,
       });
       if (result.checkInvocationFailed)
