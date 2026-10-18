@@ -29,7 +29,6 @@ beforeEach(() => {
 it("restores pending review after remount and distinguishes reupload and approval on refresh", async () => {
   load.mockResolvedValueOnce({
     emailVerified: true,
-    humanVerified: true,
     schoolVerified: false,
     reviewStatus: "manual_review",
   });
@@ -39,7 +38,6 @@ it("restores pending review after remount and distinguishes reupload and approva
   );
   load.mockResolvedValueOnce({
     emailVerified: true,
-    humanVerified: true,
     schoolVerified: false,
     reviewStatus: "needs_reupload",
   });
@@ -52,7 +50,6 @@ it("restores pending review after remount and distinguishes reupload and approva
   expect(screen.getByText("School affiliation review — Optional")).toBeTruthy();
   load.mockResolvedValueOnce({
     emailVerified: true,
-    humanVerified: true,
     schoolVerified: true,
     reviewStatus: "approved",
   });
@@ -78,7 +75,6 @@ it("displays a failed status request and permits retry without inventing approva
   ).toBeNull();
   load.mockResolvedValueOnce({
     emailVerified: true,
-    humanVerified: true,
     schoolVerified: false,
     reviewStatus: null,
   });
@@ -98,7 +94,6 @@ it("does not request private progress for signed-out visitors", async () => {
 it("shows a brand-new account as signed up, with verification optional and nothing locked", async () => {
   load.mockResolvedValueOnce({
     emailVerified: false,
-    humanVerified: false,
     schoolVerified: false,
     reviewStatus: null,
   });
@@ -106,7 +101,6 @@ it("shows a brand-new account as signed up, with verification optional and nothi
   await waitFor(() =>
     expect(screen.getByText("Create account — Completed")).toBeTruthy(),
   );
-  expect(screen.getByText("Verify you are human — Optional")).toBeTruthy();
   expect(screen.getByText("Submit school ID — Optional")).toBeTruthy();
   expect(screen.queryByText(/Complete earlier steps first/)).toBeNull();
   expect(screen.queryByText(/Verify email/)).toBeNull();

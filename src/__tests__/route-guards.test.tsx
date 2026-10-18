@@ -23,14 +23,13 @@ jest.mock("expo-router", () => {
   return { Stack };
 });
 const signedInRoutes = [
-  "human-verification",
   "location",
   "verify-id",
   "admin-review",
 ];
 it.each([
   [{ status: "signedOut" }, false],
-  // Email confirmation, CAPTCHA and ID are optional: any signed-in account reaches every screen.
+  // Email confirmation, ID are optional: any signed-in account reaches every screen.
   [{ status: "ready", userId: "u1", emailVerified: false }, true],
   [{ status: "ready", userId: "u1", emailVerified: true }, true],
 ])("protects app routes only behind sign-in for session %j", async (session, signedIn) => {

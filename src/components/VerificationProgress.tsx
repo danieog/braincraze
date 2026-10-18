@@ -84,13 +84,7 @@ function ProgressForUser({
             {(step.state === "current" || step.state === "optional") &&
               step.key !== "review" && (
               <Link
-                href={
-                  step.key === "account"
-                    ? "/signup"
-                    : step.key === "human"
-                      ? "/human-verification"
-                      : "/verify-id"
-                }
+                href={step.key === "account" ? "/signup" : "/verify-id"}
               >
                 Continue
               </Link>

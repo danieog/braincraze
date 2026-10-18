@@ -5,31 +5,17 @@
 -- Also turn OFF Authentication > Sign In / Providers > Email > "Confirm email" so people can join without emailing.
 -- WITH THAT SETTING OFF, SUPABASE MARKS EVERY EMAIL CONFIRMED WITHOUT CHECKING IT, so email_confirmed_at proves
 -- nothing and must never grant trust or a badge. That is why the school-email auto-verify trigger is dropped here.
--- What still means something: the CAPTCHA proof (human) and a person approving a school ID (school).
+-- What still means something: a person approving a school ID (school). There is no CAPTCHA / human check.
 --
 -- Trust levels (info only now; nothing is locked behind them):
---   0 = not signed in   1 = account   2 = CAPTCHA passed   3 = school ID approved by a person
+--   0 = not signed in   1 = account   3 = school ID approved by a person
 
 -- ---------------------------------------------------------------- remove school-email auto-verify (unsafe without email proof)
 drop trigger if exists on_auth_user_school_email_confirmed on auth.users;
 drop function if exists public.auto_verify_school_email();
 
 -- ---------------------------------------------------------------- trust helpers
-create or replace function public.has_human_proof(p_user uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1 from public.account_trust t
-    join public.human_verification_challenges c on c.id = t.challenge_id
-    where t.user_id = p_user and c.user_id = p_user and c.completed_at is not null
-      and c.provider = t.provider and t.provider in ('turnstile', 'hcaptcha', 'recaptcha')
-  );
-$$;
-revoke all on function public.has_human_proof(uuid) from public, anon, authenticated;
+drop function if exists public.has_human_proof(uuid);
 
 create or replace function public.my_trust_level()
 returns int
@@ -41,7 +27,6 @@ as $$
   select case
     when u.id is null then 0
     when p.school_verified_at is not null then 3
-    when public.has_human_proof(u.id) then 2
     else 1
   end
   from (select 1) one
@@ -51,7 +36,7 @@ $$;
 revoke all on function public.my_trust_level() from public, anon;
 grant execute on function public.my_trust_level() to authenticated;
 
--- Was the CAPTCHA/email gate in front of set_location, nearby_users, record_id_upload and confirm_school_email_code.
+-- Was the email gate in front of set_location, nearby_users, record_id_upload and confirm_school_email_code.
 -- It now only requires a signed-in account. The name is kept so those functions keep working unchanged.
 create or replace function public.require_human_verified()
 returns void
@@ -90,7 +75,6 @@ begin
     where user_id = me order by created_at desc, id desc limit 1;
   return jsonb_build_object(
     'email_verified', confirmed,
-    'human_verified', public.has_human_proof(me),
     'school_verified', coalesce(affiliation, false),
     'review_status', latest_status,
     'method', latest_method);

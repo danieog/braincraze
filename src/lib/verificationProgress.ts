@@ -19,7 +19,6 @@ export const verificationMethods = [
 export type VerificationMethod = (typeof verificationMethods)[number];
 export type VerificationProgress = {
   emailVerified: boolean;
-  humanVerified: boolean;
   schoolVerified: boolean;
   reviewStatus: ReviewStatus | null;
   // How the latest request was made. Null before any request exists.
@@ -27,7 +26,7 @@ export type VerificationProgress = {
 };
 // "optional" steps can be skipped; nothing in the app is locked behind them.
 export type ProgressStep = {
-  key: "account" | "human" | "submission" | "review";
+  key: "account" |"submission" | "review";
   state: "complete" | "current" | "optional" | "locked";
 };
 
@@ -38,7 +37,6 @@ export function progressSteps(
   if (!signedIn) {
     return [
       { key: "account", state: "current" },
-      { key: "human", state: "locked" },
       { key: "submission", state: "locked" },
       { key: "review", state: "locked" },
     ];
@@ -50,7 +48,6 @@ export function progressSteps(
   const needsEvidence = ["awaiting_upload", "needs_reupload", "rejected"].includes(status);
   return [
     { key: "account", state: "complete" },
-    { key: "human", state: progress?.humanVerified ? "complete" : "optional" },
     {
       key: "submission",
       state: submitted ? "complete" : needsEvidence ? "current" : "optional",
@@ -67,7 +64,6 @@ export async function loadVerificationProgress(): Promise<VerificationProgress> 
     !data ||
     typeof data.email_verified !== "boolean" ||
     typeof data.school_verified !== "boolean" ||
-    typeof data.human_verified !== "boolean" ||
     !(
       data.review_status === null || reviewStatuses.includes(data.review_status)
     ) ||
@@ -83,7 +79,6 @@ export async function loadVerificationProgress(): Promise<VerificationProgress> 
   }
   return {
     emailVerified: data.email_verified,
-    humanVerified: data.human_verified,
     schoolVerified: data.school_verified,
     reviewStatus: data.review_status,
     method: data.method ?? null,

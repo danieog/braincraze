@@ -6,7 +6,6 @@ jest.mock("../lib/session", () => ({
     status: "ready",
     userId: "fixture-user",
     emailVerified: true,
-    humanVerified: true,
   }),
 }));
 jest.mock("../lib/idVerification", () => ({
@@ -35,7 +34,6 @@ const load = loadVerificationProgress as jest.Mock;
 it("restores queued review after reopening and hides duplicate submission controls", async () => {
   load.mockResolvedValue({
     emailVerified: true,
-    humanVerified: true,
     schoolVerified: false,
     reviewStatus: "queued",
   });
@@ -52,7 +50,6 @@ it("restores queued review after reopening and hides duplicate submission contro
 it("offers replacement evidence when a reviewer requested a new image", async () => {
   load.mockResolvedValue({
     emailVerified: true,
-    humanVerified: true,
     schoolVerified: false,
     reviewStatus: "needs_reupload",
   });

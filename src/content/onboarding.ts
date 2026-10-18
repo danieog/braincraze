@@ -3,7 +3,6 @@ export const onboardingCopy = {
   title: "Your account and optional verification",
   steps: {
     account: "Create account",
-    human: "Verify you are human",
     submission: "Submit school ID",
     review: "School affiliation review",
   },
@@ -19,7 +18,7 @@ export const onboardingCopy = {
   reupload:
     "A reviewer requested a new image. Choose or capture a replacement to continue.",
   notice:
-    "Verification is optional. You can use BrainCraze without it. A school ID reviewed by a person earns a verified badge; the human check is a separate CAPTCHA.",
+    "Verification is optional. You can use BrainCraze without it. A school ID reviewed by a person earns a verified badge;",
   privacy:
     "Images are private. After a review decision, the app attempts to delete the image; failed deletion requires administrator follow-up.",
 } as const;
